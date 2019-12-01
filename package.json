@@ -7,8 +7,8 @@
         "email": "dominik.straub@gmail.com",
         "url": "dominikstraub.com"
     },
-    "license": "UNLICENSED",
-    "private": true,
+    "license": "MIT",
+    "private": false,
     "main": "index.html",
     "directories": {},
     "scripts": {
