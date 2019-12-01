@@ -107,6 +107,16 @@
         return Math.floor(mass / 3) - 2;
     };
 
+    // fuel for mass & fuel
+    let calculateFuelRequirementInclFuel = mass => {
+        let fuel = calculateFuelRequirement(mass);
+        if (fuel <= 0) {
+            return 0;
+        } else {
+            return fuel + calculateFuelRequirementInclFuel(fuel);
+        }
+    };
+
     // tests
     console.log(
         'test:',
@@ -122,4 +132,11 @@
 
     let fuel = modules.reduce((fuel, mass) => fuel + calculateFuelRequirement(mass), 0);
     console.log('result:', fuel);
+
+    // test fuel for fuel
+    // The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.
+    console.log('test:', calculateFuelRequirementInclFuel(100756) === 50346);
+
+    let fuelExtended = modules.reduce((fuel, mass) => fuel + calculateFuelRequirementInclFuel(mass), 0);
+    console.log('result:', fuelExtended);
 })();
