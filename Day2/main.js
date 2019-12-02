@@ -20,13 +20,28 @@
         for (let i = 0; step() === true; i++) {
             // console.log('step ' + i, data);
         }
-        console.log('result', data[0]);
+        // console.log('result', data[0]);
 
         // check result
         if (test) {
-            for (var i = test.length - 1; i >= 0; i--) {
+            for (let i = test.length - 1; i >= 0; i--) {
                 if (test[i] !== data[i]) {
                     console.error('expected', test[i], 'actual', data[i]);
+                }
+            }
+        }
+    };
+
+    let gravityAssist = data => {
+        for (let noun = 0; noun < 100; noun++) {
+            for (let verb = 0; verb < 100; verb++) {
+                let input = data.slice();
+                input[1] = noun;
+                input[2] = verb;
+                intcode(input);
+                if (input[0] === 19690720) {
+                    console.log(noun, verb);
+                    return;
                 }
             }
         }
@@ -39,7 +54,8 @@
     // intcode([2, 4, 4, 5, 99, 0], [2, 4, 4, 5, 99, 9801]);
     // intcode([1, 1, 1, 4, 99, 5, 6, 0, 99], [30, 1, 1, 4, 2, 5, 6, 0, 99]);
 
-    intcode([
+    // intcode([
+    gravityAssist([
         1,
         12,
         2,
