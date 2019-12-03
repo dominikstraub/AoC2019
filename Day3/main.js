@@ -1,19 +1,37 @@
 (() => {
-    const putWire = (grid, wireId, x, y) => {
+    let closest = null;
+    let shortest = null;
+
+    const putWire = (grid, wireId, x, y, distance) => {
         if (!grid[x]) {
             grid[x] = [];
         }
         if (!grid[x][y]) {
             grid[x][y] = [];
         }
-        grid[x][y][wireId] = true;
+        grid[x][y][wireId] = grid[x][y][wireId] || distance;
+        if (checkCorner(grid, x, y) === true) {
+            const corner = grid[x][y];
+            const currentClosest = Math.abs(x) + Math.abs(y);
+            let currentShortest = 0;
+            for (const wire of corner) {
+                currentShortest += wire;
+            }
+            if (!closest || currentClosest < closest) {
+                closest = currentClosest;
+            }
+            if (!shortest || currentShortest < shortest) {
+                shortest = currentShortest;
+            }
+        }
     };
 
-    const connectWirePart = (grid, wire, wireId, move) => {
+    const connectWirePart = (grid, wire, wireId, move, fullDistance) => {
         const direction = move.substring(0, 1);
         let distance = parseInt(move.substring(1), 10);
 
         for (; distance > 0; distance--) {
+            ++fullDistance;
             switch (direction) {
                 case 'U':
                     ++wire[1];
@@ -28,14 +46,16 @@
                     --wire[0];
                     break;
             }
-            putWire(grid, wireId, wire[0], wire[1]);
+            putWire(grid, wireId, wire[0], wire[1], fullDistance);
         }
+        return fullDistance;
     };
 
     const connectWire = (grid, wire, wireId, path) => {
         const wireParts = path.split(',');
+        let fullDistance = 0;
         for (const wirePart of wireParts) {
-            connectWirePart(grid, wire, wireId, wirePart);
+            fullDistance = connectWirePart(grid, wire, wireId, wirePart, fullDistance);
         }
     };
 
@@ -49,108 +69,31 @@
         }
     };
 
-    const checkCorner = (grid, i, x) => {
+    const checkCorner = (grid, x, y) => {
         const column = grid[x];
         if (!column) {
             return false;
         }
-        x = Math.abs(x);
-        if (i < 0) {
-            x *= -1;
-        }
-        const corner = column[i - x];
+        const corner = column[y];
         if (!corner) {
             return false;
         }
         let wireCount = 0;
         for (const wire of corner) {
-            if (wire === true) {
+            if (typeof wire === 'number') {
                 wireCount++;
             }
         }
-        if (wireCount >= 2) {
-            return true;
-        }
-    };
-
-    const checkClosestIntesection = grid => {
-        for (let i = 0; i < 100000; i++) {
-            for (let x = 0; x < i; x++) {
-                if (
-                    checkCorner(grid, i, x) ||
-                    checkCorner(grid, i, -x) ||
-                    checkCorner(grid, -i, x) ||
-                    checkCorner(grid, -i, -x) === true
-                ) {
-                    return i;
-                }
-            }
-        }
-    };
-
-    const measureWirePart = (grid, wire, move) => {
-        const direction = move.substring(0, 1);
-        let distance = parseInt(move.substring(1), 10);
-        const wirePartLength = distance;
-        const result = { found: false, length: 0 };
-
-        while (distance > 0) {
-            --distance;
-            switch (direction) {
-                case 'U':
-                    ++wire[1];
-                    break;
-                case 'R':
-                    ++wire[0];
-                    break;
-                case 'D':
-                    --wire[1];
-                    break;
-                case 'L':
-                    --wire[0];
-                    break;
-            }
-            if (checkCorner(grid, wire[0] + wire[1], wire[0]) === true) {
-                result.found = true;
-                break;
-            }
-        }
-        result.length = wirePartLength - distance;
-        return result;
-    };
-
-    const measureWire = (grid, wire, path) => {
-        const wireParts = path.split(',');
-        let wireLength = 0;
-        for (const wirePart of wireParts) {
-            const result = measureWirePart(grid, wire, wirePart);
-            wireLength += result.length;
-            if (result.found === true) {
-                break;
-            }
-        }
-        return wireLength;
-    };
-
-    const checkShortestIntesection = (grid, wirePaths) => {
-        const wires = [
-            [0, 0],
-            [0, 0]
-        ];
-        let totalLength = 0;
-        for (let i = 0; i < wirePaths.length; i++) {
-            totalLength += measureWire(grid, wires[i], wirePaths[i]);
-        }
-        return totalLength;
+        return wireCount >= 2;
     };
 
     const run = wirePaths => {
         const grid = [];
+        closest = null;
+        shortest = null;
         connectAllWires(grid, wirePaths);
         // console.log(grid);
-        const closest = checkClosestIntesection(grid);
         console.log('closest', closest);
-        const shortest = checkShortestIntesection(grid, wirePaths);
         console.log('shortest', shortest);
     };
 
