@@ -88,15 +88,73 @@
         }
     };
 
+    const measureWirePart = (grid, wire, move) => {
+        const direction = move.substring(0, 1);
+        let distance = parseInt(move.substring(1), 10);
+        const wirePartLength = distance;
+        const result = { found: false, length: 0 };
+
+        while (distance > 0) {
+            --distance;
+            switch (direction) {
+                case 'U':
+                    ++wire[1];
+                    break;
+                case 'R':
+                    ++wire[0];
+                    break;
+                case 'D':
+                    --wire[1];
+                    break;
+                case 'L':
+                    --wire[0];
+                    break;
+            }
+            if (checkCorner(grid, wire[0] + wire[1], wire[0]) === true) {
+                result.found = true;
+                break;
+            }
+        }
+        result.length = wirePartLength - distance;
+        return result;
+    };
+
+    const measureWire = (grid, wire, path) => {
+        const wireParts = path.split(',');
+        let wireLength = 0;
+        for (const wirePart of wireParts) {
+            const result = measureWirePart(grid, wire, wirePart);
+            wireLength += result.length;
+            if (result.found === true) {
+                break;
+            }
+        }
+        return wireLength;
+    };
+
+    const checkShortestIntesection = (grid, wirePaths) => {
+        const wires = [
+            [0, 0],
+            [0, 0]
+        ];
+        let totalLength = 0;
+        for (let i = 0; i < wirePaths.length; i++) {
+            totalLength += measureWire(grid, wires[i], wirePaths[i]);
+        }
+        return totalLength;
+    };
+
     const run = wirePaths => {
         const grid = [];
         connectAllWires(grid, wirePaths);
-        const result = checkClosestIntesection(grid);
         // console.log(grid);
-        console.log(result);
+        const closest = checkClosestIntesection(grid);
+        console.log('closest', closest);
+        const shortest = checkShortestIntesection(grid, wirePaths);
+        console.log('shortest', shortest);
     };
 
-    run(['R8,U5,L5,D3', 'U7,R6,D4,L4']); // 6 // 15
+    run(['R8,U5,L5,D3', 'U7,R6,D4,L4']); // 6 // 30
     run(['R75,D30,R83,U83,L12,D49,R71,U7,L72', 'U62,R66,U55,R34,D71,R55,D58,R83']); // 159 // 610
     run(['R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51', 'U98,R91,D20,R16,D67,R40,U7,R15,U6,R7']); // 135 // 410
 
