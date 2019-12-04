@@ -12,7 +12,11 @@
                 onlyIncrease = false;
                 break;
             }
-            if (codeString[digit] === codeString[digit + 1]) {
+            if (
+                codeString[digit] === codeString[digit + 1] &&
+                codeString[digit + 1] !== codeString[digit + 2] &&
+                codeString[digit - 1] !== codeString[digit]
+            ) {
                 sameDigit = true;
             }
         }
