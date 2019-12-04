@@ -1,4 +1,6 @@
 (() => {
+    const startTime = performance.now();
+
     let intcode = (data, test) => {
         let index = 0;
 
@@ -186,4 +188,6 @@
         14,
         0
     ]);
+
+    console.log('execution time', performance.now() - startTime);
 })();

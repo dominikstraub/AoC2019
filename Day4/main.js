@@ -1,4 +1,6 @@
 (() => {
+    const startTime = performance.now();
+
     const min = 165432;
     const max = 707912;
     const length = 6;
@@ -25,4 +27,6 @@
         }
     }
     console.log(count);
+
+    console.log('execution time', performance.now() - startTime);
 })();
