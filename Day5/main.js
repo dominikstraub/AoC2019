@@ -2,7 +2,7 @@
     const startTime = performance.now();
 
     const consoleRead = () => {
-        return 1;
+        return 5;
     };
 
     const intcode = (data, test) => {
@@ -15,34 +15,64 @@
             const p2mode = Math.floor(instruction / 1000) % 10;
             const p3mode = Math.floor(instruction / 10000) % 10;
 
-            let p1address = [index + 1];
+            let p1address = index + 1;
             if (p1mode === 0) {
                 p1address = data[p1address];
             }
-            let p2address = [index + 2];
+            let p2address = index + 2;
             if (p2mode === 0) {
                 p2address = data[p2address];
             }
-            let p3address = [index + 3];
+            let p3address = index + 3;
             if (p3mode === 0) {
                 p3address = data[p3address];
             }
             switch (opcode) {
                 case 1:
-                    data[p3address] = data[p1address] + data[p2address];
+                    data[data[index + 3]] = data[p1address] + data[p2address];
                     index += 4;
                     break;
                 case 2:
-                    data[p3address] = data[p1address] * data[p2address];
+                    data[data[index + 3]] = data[p1address] * data[p2address];
                     index += 4;
                     break;
                 case 3:
-                    data[p1address] = consoleRead();
+                    data[data[index + 1]] = consoleRead();
                     index += 2;
                     break;
                 case 4:
                     console.log('output', data[p1address]);
                     index += 2;
+                    break;
+                case 5:
+                    if (data[p1address] !== 0) {
+                        index = data[p2address];
+                    } else {
+                        index += 3;
+                    }
+                    break;
+                case 6:
+                    if (data[p1address] === 0) {
+                        index = data[p2address];
+                    } else {
+                        index += 3;
+                    }
+                    break;
+                case 7:
+                    if (data[p1address] < data[p2address]) {
+                        data[p3address] = 1;
+                    } else {
+                        data[p3address] = 0;
+                    }
+                    index += 4;
+                    break;
+                case 8:
+                    if (data[p1address] === data[p2address]) {
+                        data[p3address] = 1;
+                    } else {
+                        data[p3address] = 0;
+                    }
+                    index += 4;
                     break;
                 case 99:
                     index += 1;
@@ -56,6 +86,57 @@
         }
         // console.log('result', data[0]);
     };
+
+    // test
+    // intcode([
+    //     3,
+    //     21,
+    //     1008,
+    //     21,
+    //     8,
+    //     20,
+    //     1005,
+    //     20,
+    //     22,
+    //     107,
+    //     8,
+    //     21,
+    //     20,
+    //     1006,
+    //     20,
+    //     31,
+    //     1106,
+    //     0,
+    //     36,
+    //     98,
+    //     0,
+    //     0,
+    //     1002,
+    //     21,
+    //     125,
+    //     20,
+    //     4,
+    //     20,
+    //     1105,
+    //     1,
+    //     46,
+    //     104,
+    //     999,
+    //     1105,
+    //     1,
+    //     46,
+    //     1101,
+    //     1000,
+    //     1,
+    //     20,
+    //     4,
+    //     20,
+    //     1105,
+    //     1,
+    //     46,
+    //     98,
+    //     99
+    // ]);
 
     intcode([
         3,
