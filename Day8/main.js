@@ -30,18 +30,13 @@
     const render = image => {
         const renderedImage = [];
 
-        for (let colI = 0; colI < image[0][0].length; colI++) {
-            renderedImage[colI] = [];
-            for (let rowI = 0; rowI < image[0].length; rowI++) {
-                renderedImage[colI][rowI] = null;
+        for (let rowI = 0; rowI < image[0].length; rowI++) {
+            renderedImage[rowI] = [];
+            for (let colI = 0; colI < image[0][0].length; colI++) {
+                renderedImage[rowI][colI] = null;
                 for (let layerI = 0; layerI < image.length; layerI++) {
-                    if (renderedImage[colI][rowI] === null || renderedImage[colI][rowI] === 2) {
-                        renderedImage[colI][rowI] =
-                            image[layerI][rowI][colI] === 1
-                                ? '#'
-                                : image[layerI][rowI][colI] === 0
-                                ? ' '
-                                : image[layerI][rowI][colI];
+                    if (renderedImage[rowI][colI] === null || renderedImage[rowI][colI] === 2) {
+                        renderedImage[rowI][colI] = image[layerI][rowI][colI];
                     } else {
                         break;
                     }
@@ -52,17 +47,45 @@
         return renderedImage;
     };
 
-    const response = await fetch('./input.json');
-    // const response = await fetch('./test.json');
-    // const response = await fetch('./test2.json');
-    const { data, width, height } = await response.json();
-    // console.log(input);
+    const drawCanvas = image => {
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('width', image.length * 16);
+        canvas.setAttribute('height', image[0].length * 16);
+        const body = document.getElementsByTagName('body')[0];
+        body.append(canvas);
+        body.append(document.createElement('br'));
 
-    const { image, checksum } = dsnDecoder(data, width, height);
-    console.log(checksum, image);
+        const ctx = canvas.getContext('2d');
 
-    const renderedImage = render(image);
-    console.log(renderedImage);
+        for (let row = image.length - 1; row >= 0; row--) {
+            for (let col = image.length - 1; col >= 0; col--) {
+                if (image[row][col] === 0) {
+                    ctx.fillStyle = 'black';
+                } else if (image[row][col] === 1) {
+                    ctx.fillStyle = 'white';
+                }
+                ctx.fillRect(row * 16, col * 16, 16, 16);
+            }
+        }
+    };
+
+    const run = async inputPath => {
+        const response = await fetch(inputPath);
+        const { data, width, height } = await response.json();
+
+        const { image, checksum } = dsnDecoder(data, width, height);
+        console.log(checksum, image);
+
+        const renderedImage = render(image);
+        console.log(renderedImage);
+
+        drawCanvas(renderedImage);
+    };
+
+    await run('./test.json');
+    await run('./test2.json');
+    await run('./input.json');
+    await run('./input-alex.json');
 
     console.log('execution time', performance.now() - startTime);
 })();
