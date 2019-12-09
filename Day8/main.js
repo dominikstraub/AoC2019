@@ -1,7 +1,7 @@
 (async () => {
     const startTime = performance.now();
 
-    const dsnDecoder = (data, rows, cols) => {
+    const dsnDecoder = (data, cols, rows) => {
         const image = [];
 
         let fevestZeros = null;
@@ -35,11 +35,10 @@
             for (let colI = 0; colI < image[0][0].length; colI++) {
                 renderedImage[rowI][colI] = null;
                 for (let layerI = 0; layerI < image.length; layerI++) {
-                    if (renderedImage[rowI][colI] === null || renderedImage[rowI][colI] === 2) {
-                        renderedImage[rowI][colI] = image[layerI][rowI][colI];
-                    } else {
+                    if (renderedImage[rowI][colI] !== null && renderedImage[rowI][colI] !== 2) {
                         break;
                     }
+                    renderedImage[rowI][colI] = image[layerI][rowI][colI];
                 }
             }
         }
@@ -48,9 +47,10 @@
     };
 
     const drawCanvas = image => {
+        const size = 16;
         const canvas = document.createElement('canvas');
-        canvas.setAttribute('width', image.length * 16);
-        canvas.setAttribute('height', image[0].length * 16);
+        canvas.setAttribute('width', image[0].length * size);
+        canvas.setAttribute('height', image.length * size);
         const body = document.getElementsByTagName('body')[0];
         body.append(canvas);
         body.append(document.createElement('br'));
@@ -58,13 +58,13 @@
         const ctx = canvas.getContext('2d');
 
         for (let row = image.length - 1; row >= 0; row--) {
-            for (let col = image.length - 1; col >= 0; col--) {
+            for (let col = image[0].length - 1; col >= 0; col--) {
                 if (image[row][col] === 0) {
                     ctx.fillStyle = 'black';
                 } else if (image[row][col] === 1) {
                     ctx.fillStyle = 'white';
                 }
-                ctx.fillRect(row * 16, col * 16, 16, 16);
+                ctx.fillRect(col * size, row * size, size, size);
             }
         }
     };
@@ -82,10 +82,9 @@
         drawCanvas(renderedImage);
     };
 
-    await run('./test.json');
-    await run('./test2.json');
+    // await run('./test.json');
+    // await run('./test2.json');
     await run('./input.json');
-    await run('./input-alex.json');
 
     console.log('execution time', performance.now() - startTime);
 })();
