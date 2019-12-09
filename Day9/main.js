@@ -102,7 +102,7 @@
         const { data } = await response.json();
         console.log(data);
 
-        intcode(data, [1]);
+        intcode(data, [2]);
     };
 
     // await run('./test.json');
