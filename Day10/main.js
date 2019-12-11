@@ -1,38 +1,37 @@
 (async () => {
     const startTime = performance.now();
 
-    const drawCanvas = (map, highlights = [], canvasId = 'main') => {
+    let ctx = null;
+
+    const drawCanvas = map => {
         const size = 16;
-        let canvas = document.getElementById(canvasId);
-        if (!canvas) {
-            canvas = document.createElement('canvas');
-            canvas.setAttribute('id', canvasId);
+        if (!ctx) {
+            const canvas = document.createElement('canvas');
+            canvas.setAttribute('id', 'mainCanvas');
             canvas.setAttribute('width', map[0].length * size + size * 2);
             canvas.setAttribute('height', map.length * size + size * 2);
             const body = document.getElementsByTagName('body')[0];
             body.append(canvas);
             body.append(document.createElement('br'));
+            ctx = canvas.getContext('2d');
         }
-
-        const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = 'grey';
         ctx.fillRect(0, 0, map[0].length * size + size * 2, map[0].length * size + size * 2);
         for (let row = map.length - 1; row >= 0; row--) {
             for (let col = map[0].length - 1; col >= 0; col--) {
-                if (map[row][col] === '#') {
-                    ctx.fillStyle = 'orange';
-                } else if (map[row][col]) {
+                const color = map[row][col];
+                if (color) {
+                    ctx.fillStyle = map[row][col];
+                } else {
                     ctx.fillStyle = 'white';
                 }
                 ctx.fillRect(size + col * size, size + row * size, size, size);
             }
         }
 
-        for (const highlight of highlights) {
-            ctx.fillStyle = highlight.color;
-            ctx.fillRect(size + highlight.x * size, size + highlight.y * size, size, size);
-        }
+        // ctx.font = '48px serif';
+        // ctx.fillText('Hello world', 10, 50);
     };
 
     const analyzeMap = map => {
@@ -46,8 +45,12 @@
                 const pos1 = map[y1][x1];
                 let curCount = 0;
                 if (pos1 === '#') {
-                    let highlights = [{ x: x1, y: y1, color: 'blue' }];
-                    // ...with every other asteroid...
+                    let drawMap = [];
+                    for (let i = map.length - 1; i >= 0; i--) {
+                        drawMap[i] = [];
+                    }
+                    drawMap[y1][x1] = 'blue';
+                    // ...against every other asteroid...
                     const leftSlopes = [];
                     const rightSlopes = [];
                     for (let y2 = 0; y2 < map.length; y2++) {
@@ -55,52 +58,54 @@
                             const pos2 = map[y2][x2];
                             if (pos2 === '#' && !(x1 === x2 && y1 === y2)) {
                                 // ... to check if another asteroid is in between them
-                                //
+                                if (!drawMap[y2][x2]) {
+                                    drawMap[y2][x2] = 'black';
+                                }
 
                                 let slope = (y1 - y2) / (x1 - x2);
 
                                 if (x1 === x2) {
                                     if (y1 < y2) {
                                         if (!rightSlopes.includes(slope)) {
-                                            highlights.push({ x: x2, y: y2, color: 'green' });
+                                            drawMap[y2][x2] = 'green';
                                             rightSlopes.push(slope);
                                             for (let y = y1 + 1; y <= y2; y++) {
                                                 if (map[y][x1] === '#') {
                                                     if (y === y2) {
-                                                        highlights.push({ x: x1, y: y, color: 'red' });
+                                                        drawMap[y][x1] = 'red';
                                                     } else {
-                                                        highlights.push({ x: x1, y: y, color: 'orange' });
+                                                        drawMap[y][x1] = 'orange';
                                                     }
                                                     curCount++;
                                                     break;
                                                 }
                                             }
                                         } else {
-                                            highlights.push({ x: x2, y: y2, color: 'lightgreen' });
+                                            // drawMap[y2][x2] = 'lightgreen';
                                         }
                                     } else {
                                         if (!leftSlopes.includes(slope)) {
-                                            highlights.push({ x: x2, y: y2, color: 'green' });
+                                            drawMap[y2][x2] = 'green';
                                             leftSlopes.push(slope);
                                             for (let y = y1 - 1; y >= y2; y--) {
                                                 if (map[y][x1] === '#') {
                                                     if (y === y2) {
-                                                        highlights.push({ x: x1, y: y, color: 'red' });
+                                                        drawMap[y][x1] = 'red';
                                                     } else {
-                                                        highlights.push({ x: x1, y: y, color: 'orange' });
+                                                        drawMap[y][x1] = 'orange';
                                                     }
                                                     curCount++;
                                                     break;
                                                 }
                                             }
                                         } else {
-                                            highlights.push({ x: x2, y: y2, color: 'lightgreen' });
+                                            // drawMap[y2][x2] = 'lightgreen';
                                         }
                                     }
                                 } else {
                                     if (x1 < x2) {
                                         if (!rightSlopes.includes(slope)) {
-                                            highlights.push({ x: x2, y: y2, color: 'green' });
+                                            drawMap[y2][x2] = 'green';
                                             rightSlopes.push(slope);
                                             for (let x = x1 + 1; x <= x2; x++) {
                                                 const y = y1 + slope * (x - x1);
@@ -111,20 +116,20 @@
                                                     map[y][x] === '#'
                                                 ) {
                                                     if (y === y2 && x === x2) {
-                                                        highlights.push({ x: x, y: y, color: 'red' });
+                                                        drawMap[y][x] = 'red';
                                                     } else {
-                                                        highlights.push({ x: x, y: y, color: 'orange' });
+                                                        drawMap[y][x] = 'orange';
                                                     }
                                                     curCount++;
                                                     break;
                                                 }
                                             }
                                         } else {
-                                            highlights.push({ x: x2, y: y2, color: 'lightgreen' });
+                                            // drawMap[y2][x2] = 'lightgreen';
                                         }
                                     } else {
                                         if (!leftSlopes.includes(slope)) {
-                                            highlights.push({ x: x2, y: y2, color: 'green' });
+                                            drawMap[y2][x2] = 'green';
                                             leftSlopes.push(slope);
                                             for (let x = x1 - 1; x >= x2; x--) {
                                                 const y = y1 + slope * (x - x1);
@@ -135,25 +140,26 @@
                                                     map[y][x] === '#'
                                                 ) {
                                                     if (y === y2 && x === x2) {
-                                                        highlights.push({ x: x, y: y, color: 'red' });
+                                                        drawMap[y][x] = 'red';
                                                     } else {
-                                                        highlights.push({ x: x, y: y, color: 'orange' });
+                                                        drawMap[y][x] = 'orange';
                                                     }
                                                     curCount++;
                                                     break;
                                                 }
                                             }
                                         } else {
-                                            highlights.push({ x: x2, y: y2, color: 'lightgreen' });
+                                            // drawMap[y2][x2] = 'lightgreen';
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    drawCanvas(map, highlights);
                     if (x1 === 20 && y1 === 19) {
                         debugger;
+                        drawCanvas(drawMap);
+                        return;
                     }
                     if (curCount > count) {
                         count = curCount;
