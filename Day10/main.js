@@ -3,8 +3,8 @@
 
     let ctx = null;
 
-    const drawCanvas = map => {
-        const size = 16;
+    const drawCanvas = (map, shots) => {
+        const size = 32;
         if (!ctx) {
             const canvas = document.createElement('canvas');
             canvas.setAttribute('id', 'mainCanvas');
@@ -30,6 +30,42 @@
             }
         }
 
+        for (let row = map.length - 1; row >= 0; row--) {
+            for (let col = map[0].length - 1; col >= 0; col--) {
+                const shot = shots[row][col];
+                if (!shot) {
+                    continue;
+                }
+                ctx.strokeStyle = 'grey';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(size + shot.source[1] * size + size / 2, size + shot.source[0] * size + size / 2);
+                ctx.lineTo(size + col * size + size / 2, size + row * size + size / 2);
+                ctx.stroke();
+            }
+        }
+        for (let row = map.length - 1; row >= 0; row--) {
+            for (let col = map[0].length - 1; col >= 0; col--) {
+                const shot = shots[row][col];
+                if (!shot) {
+                    continue;
+                }
+                ctx.strokeStyle = shot.color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(size + shot.source[1] * size + size / 2, size + shot.source[0] * size + size / 2);
+                ctx.lineTo(size + col * size + size / 2, size + row * size + size / 2);
+                ctx.stroke();
+            }
+        }
+
+        // TODO: make legend
+        // black: asteroid
+        // green: checked asteroid
+        // red: checked & visible asteroid
+        // orange: visible asteroid while checking a green one
+        // white: empty space
+        // grey: border
         // ctx.font = '48px serif';
         // ctx.fillText('Hello world', 10, 50);
     };
@@ -45,9 +81,11 @@
                 const pos1 = map[y1][x1];
                 let curCount = 0;
                 if (pos1 === '#') {
-                    let drawMap = [];
+                    const drawMap = [];
+                    const shots = [];
                     for (let i = map.length - 1; i >= 0; i--) {
                         drawMap[i] = [];
+                        shots[i] = [];
                     }
                     drawMap[y1][x1] = 'blue';
                     // ...against every other asteroid...
@@ -62,19 +100,22 @@
                                     drawMap[y2][x2] = 'black';
                                 }
 
-                                let slope = (y1 - y2) / (x1 - x2);
+                                const slope = (y1 - y2) / (x1 - x2);
 
                                 if (x1 === x2) {
                                     if (y1 < y2) {
                                         if (!rightSlopes.includes(slope)) {
                                             drawMap[y2][x2] = 'green';
+                                            shots[y2][x2] = { color: 'green', source: [y1, x1] };
                                             rightSlopes.push(slope);
                                             for (let y = y1 + 1; y <= y2; y++) {
                                                 if (map[y][x1] === '#') {
                                                     if (y === y2) {
                                                         drawMap[y][x1] = 'red';
+                                                        shots[y][x1] = { color: 'red', source: [y1, x1] };
                                                     } else {
                                                         drawMap[y][x1] = 'orange';
+                                                        shots[y][x1] = { color: 'orange', source: [y1, x1] };
                                                     }
                                                     curCount++;
                                                     break;
@@ -82,17 +123,21 @@
                                             }
                                         } else {
                                             // drawMap[y2][x2] = 'lightgreen';
+                                            // shots[y2][x2] = { color: 'lightgreen', source: [y1, x1] };
                                         }
                                     } else {
                                         if (!leftSlopes.includes(slope)) {
                                             drawMap[y2][x2] = 'green';
+                                            shots[y2][x2] = { color: 'green', source: [y1, x1] };
                                             leftSlopes.push(slope);
                                             for (let y = y1 - 1; y >= y2; y--) {
                                                 if (map[y][x1] === '#') {
                                                     if (y === y2) {
                                                         drawMap[y][x1] = 'red';
+                                                        shots[y][x1] = { color: 'red', source: [y1, x1] };
                                                     } else {
                                                         drawMap[y][x1] = 'orange';
+                                                        shots[y][x1] = { color: 'orange', source: [y1, x1] };
                                                     }
                                                     curCount++;
                                                     break;
@@ -100,12 +145,14 @@
                                             }
                                         } else {
                                             // drawMap[y2][x2] = 'lightgreen';
+                                            // shots[y2][x2] = { color: 'lightgreen', source: [y1, x1] };
                                         }
                                     }
                                 } else {
                                     if (x1 < x2) {
                                         if (!rightSlopes.includes(slope)) {
                                             drawMap[y2][x2] = 'green';
+                                            shots[y2][x2] = { color: 'green', source: [y1, x1] };
                                             rightSlopes.push(slope);
                                             for (let x = x1 + 1; x <= x2; x++) {
                                                 const y = y1 + slope * (x - x1);
@@ -117,8 +164,10 @@
                                                 ) {
                                                     if (y === y2 && x === x2) {
                                                         drawMap[y][x] = 'red';
+                                                        shots[y][x] = { color: 'red', source: [y1, x1] };
                                                     } else {
                                                         drawMap[y][x] = 'orange';
+                                                        shots[y][x] = { color: 'orange', source: [y1, x1] };
                                                     }
                                                     curCount++;
                                                     break;
@@ -126,10 +175,12 @@
                                             }
                                         } else {
                                             // drawMap[y2][x2] = 'lightgreen';
+                                            // shots[y2][x2] = { color: 'lightgreen', source: [y1, x1] };
                                         }
                                     } else {
                                         if (!leftSlopes.includes(slope)) {
                                             drawMap[y2][x2] = 'green';
+                                            shots[y2][x2] = { color: 'green', source: [y1, x1] };
                                             leftSlopes.push(slope);
                                             for (let x = x1 - 1; x >= x2; x--) {
                                                 const y = y1 + slope * (x - x1);
@@ -141,8 +192,10 @@
                                                 ) {
                                                     if (y === y2 && x === x2) {
                                                         drawMap[y][x] = 'red';
+                                                        shots[y][x] = { color: 'red', source: [y1, x1] };
                                                     } else {
                                                         drawMap[y][x] = 'orange';
+                                                        shots[y][x] = { color: 'orange', source: [y1, x1] };
                                                     }
                                                     curCount++;
                                                     break;
@@ -150,6 +203,7 @@
                                             }
                                         } else {
                                             // drawMap[y2][x2] = 'lightgreen';
+                                            // shots[y2][x2] = { color: 'lightgreen', source: [y1, x1] };
                                         }
                                     }
                                 }
@@ -157,11 +211,12 @@
                         }
                     }
                     if (x1 === 20 && y1 === 19) {
-                        debugger;
-                        drawCanvas(drawMap);
-                        return;
+                        // debugger;
+                        drawCanvas(drawMap, shots);
+                        // return;
                     }
                     if (curCount > count) {
+                        // drawCanvas(drawMap, shots);
                         count = curCount;
                         xA = x1;
                         yA = y1;
@@ -174,6 +229,7 @@
             }
         }
 
+        console.log(counts);
         return { position: [xA, yA], asteroids: count };
     };
 
