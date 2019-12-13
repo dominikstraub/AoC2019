@@ -70,7 +70,7 @@
         // ctx.fillText('Hello world', 10, 50);
     };
 
-    const analyzeMap = map => {
+    const analyzeMapGen = function*(map) {
         let xA = null;
         let yA = null;
         let count = 0;
@@ -210,9 +210,9 @@
                             }
                         }
                     }
+                    drawCanvas(drawMap, shots);
                     if (x1 === 20 && y1 === 19) {
                         // debugger;
-                        drawCanvas(drawMap, shots);
                         // return;
                     }
                     if (curCount > count) {
@@ -226,6 +226,7 @@
                     counts[y1] = [];
                 }
                 counts[y1][x1] = curCount.toString().padStart(3, 0);
+                yield;
             }
         }
 
@@ -234,24 +235,38 @@
     };
 
     const run = async inputPath => {
+        const end = value => {
+            const { position, asteroids } = value;
+            console.log(position);
+            console.log(asteroids);
+            if (asteroidsCheck) {
+                console.log('positionX', position[0] === positionCheck[0]);
+                console.log('positionY', position[1] === positionCheck[1]);
+                console.log('asteroids', asteroids === asteroidsCheck);
+            }
+            console.log('execution time', performance.now() - startTime);
+        };
+
         const response = await fetch(inputPath);
         const { data, positionCheck, asteroidsCheck } = await response.json();
         // console.log(data);
 
-        const { position, asteroids } = analyzeMap(data);
-        console.log(position);
-        console.log(asteroids);
-        if (asteroidsCheck) {
-            console.log('positionX', position[0] === positionCheck[0]);
-            console.log('positionY', position[1] === positionCheck[1]);
-            console.log('asteroids', asteroids === asteroidsCheck);
-        }
+        const gen = analyzeMapGen(data);
+        let current = null;
+        const next = () => {
+            current = gen.next();
+            if (current.done) {
+                end(current.value);
+                return;
+            }
+            // next();
+            window.setTimeout(next, 1);
+        };
+        next();
     };
 
     // await run('./test.json');
     // await run('./test2.json');
     // await run('./test3.json');
     await run('./input.json');
-
-    console.log('execution time', performance.now() - startTime);
 })();
